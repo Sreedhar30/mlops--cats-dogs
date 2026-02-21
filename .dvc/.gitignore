@@ -1,3 +1,31 @@
 /config.local
 /tmp
 /cache
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# MLflow
+mlruns/
+
+# Model weights
+models/*.pt
+models/*.pth
+*.h5
+
+# DVC cache
+.dvc/cache/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
