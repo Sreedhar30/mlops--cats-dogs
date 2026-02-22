@@ -11,9 +11,29 @@ from src.model import SimpleCNN
 # ---------------------------
 # Logging Setup
 # ---------------------------
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
 
 app = FastAPI()
+from fastapi import Request
+import time
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+
+    response = await call_next(request)
+
+    process_time = time.time() - start_time
+    logging.info(
+        f"{request.method} {request.url.path} "
+        f"Status: {response.status_code} "
+        f"Time: {process_time:.4f}s"
+    )
+
+    return response
 
 # ---------------------------
 # Load Model
@@ -47,23 +67,31 @@ def health():
 # ---------------------------
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
-    contents = await file.read()
-    np_img = np.frombuffer(contents, np.uint8)
-    img = cv2.imdecode(np_img, cv2.IMREAD_COLOR)
+    try:
+        contents = await file.read()
+        np_img = np.frombuffer(contents, np.uint8)
+        img = cv2.imdecode(np_img, cv2.IMREAD_COLOR)
 
-    img = cv2.resize(img, (224, 224))
-    img = transform(img).unsqueeze(0).to(device)
+        img = cv2.resize(img, (224, 224))
+        img = transform(img).unsqueeze(0).to(device)
 
-    with torch.no_grad():
-        outputs = model(img)
-        probabilities = torch.softmax(outputs, dim=1)
-        predicted_class = torch.argmax(probabilities, dim=1).item()
+        with torch.no_grad():
+            outputs = model(img)
+            probabilities = torch.softmax(outputs, dim=1)
+            predicted_class = torch.argmax(probabilities, dim=1).item()
 
-    label = "Cat" if predicted_class == 0 else "Dog"
+        label = "Cat" if predicted_class == 0 else "Dog"
 
-    logging.info(f"Prediction made: {label}")
+        logging.info(
+            f"Prediction: {label} | "
+            f"Probabilities: {probabilities.cpu().numpy().tolist()}"
+        )
 
-    return {
-        "prediction": label,
-        "probabilities": probabilities.cpu().numpy().tolist()
-    }
+        return {
+            "prediction": label,
+            "probabilities": probabilities.cpu().numpy().tolist()
+        }
+
+    except Exception as e:
+        logging.error(f"Prediction error: {str(e)}")
+        return {"error": "Prediction failed"}
