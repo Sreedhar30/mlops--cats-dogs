@@ -222,7 +222,7 @@ Logs accessible using:
 
 
 
-docker logs sreedharmlops
+docker logs <container\_id>
 
 
 
