@@ -41,13 +41,12 @@ jobs:
       run: |
         docker push ${{ secrets.DOCKER_USERNAME }}/cats-dogs-api:latest
 
-    - name: Deploy using Docker Compose
+    - name: Run container
       run: |
-        docker compose down || true
-        docker compose up -d
+        docker run -d -p 8000:8000 ${{ secrets.DOCKER_USERNAME }}/cats-dogs-api:latest
 
     - name: Wait for service
-      run: sleep 10
+      run: sleep 15
 
     - name: Smoke Test
       run: |

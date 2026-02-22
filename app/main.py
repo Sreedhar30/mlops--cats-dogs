@@ -21,8 +21,12 @@ app = FastAPI()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model = SimpleCNN().to(device)
-model.load_state_dict(torch.load("models/model.pt", map_location=device))
-model.eval()
+
+try:
+    model.load_state_dict(torch.load("models/model.pt", map_location=device))
+    model.eval()
+except FileNotFoundError:
+    print("Warning: model file not found. Running without loaded weights.")
 
 # ---------------------------
 # Transform
