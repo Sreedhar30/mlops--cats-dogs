@@ -246,3 +246,6 @@ Open:
 
 http://localhost:8000/docs
 
+Conclusion
+This project demonstrates a complete MLOps lifecycle including preprocessing, serving, testing, CI/CD, deployment, and monitoring.
+
